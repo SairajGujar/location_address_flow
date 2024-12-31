@@ -6,7 +6,7 @@ const Navbar = ({ token }) => {
     <nav className="bg-gray-800 text-white">
       <div className="container mx-auto flex justify-between items-center p-4">
         <div className="text-2xl font-bold">
-          <Link to="/">MyLogo</Link>
+          <Link to="/">OptaCloud</Link>
         </div>
 
         <div className="hidden md:flex space-x-4">

@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import PopupModal from "../components/PopupModal";
+import MapComponent from "../components/MapComponent";
+import { toast } from "react-toastify";
+
 
 const HomePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [locationAllowed, setLocationAllowed] = useState(false);
+  const [manualSearch, setManualSearch] = useState(false);
 
   useEffect(() => {
+    
     if (navigator.permissions) {
       navigator.permissions
         .query({ name: "geolocation" })
@@ -18,30 +23,31 @@ const HomePage = () => {
           }
         })
         .catch(() => {
-          setIsModalOpen(true); // If query fails, show the modal
+          setIsModalOpen(true);
         });
     } else {
-      setIsModalOpen(true); // For unsupported browsers, show the modal
+      setIsModalOpen(true);
     }
   }, []);
 
-  // Handle location permission
   const handleAllowLocation = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         console.log("User's location:", position.coords);
         setLocationAllowed(true);
         setIsModalOpen(false);
+        toast.success("location fetched successfully");
       },
       (error) => {
+        toast.error("location permission blocked");
+
         console.error("Error obtaining location:", error.message);
       }
     );
   };
 
-  // Handle manual search
   const handleManualSearch = () => {
-    console.log("Redirecting to manual search...");
+    setManualSearch(true);
     setIsModalOpen(false);
   };
 
@@ -52,11 +58,16 @@ const HomePage = () => {
         <h1 className="text-4xl font-bold text-center mt-8">
           Welcome to the Home Page!
         </h1>
+        <div className="mt-8">
+          <MapComponent
+            allowLocation={locationAllowed}
+            enableSearch={manualSearch}
+          />
+        </div>
       </main>
 
-      {/* Modal Component */}
       <PopupModal
-        isVisible={isModalOpen && !locationAllowed}
+        isVisible={isModalOpen}
         onAllowLocation={handleAllowLocation}
         onManualSearch={handleManualSearch}
       />
