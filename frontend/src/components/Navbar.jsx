@@ -11,8 +11,8 @@ const Navbar = ({ token }) => {
 
         <div className="hidden md:flex space-x-4">
           {token && (
-            <Link to="/address" className="hover:text-gray-300">
-              Address
+            <Link to="/manage-address" className="hover:text-gray-300">
+              Manage Address
             </Link>
           )}
         </div>
@@ -45,7 +45,7 @@ const Navbar = ({ token }) => {
         <div className="flex justify-center py-2">
           {token && (
             <Link to="/address" className="hover:text-gray-300">
-              Address
+              Manage Address
             </Link>
           )}
         </div>

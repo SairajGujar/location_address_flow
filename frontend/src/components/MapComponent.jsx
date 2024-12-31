@@ -7,12 +7,18 @@ import {
 } from "@react-google-maps/api";
 import PopupModal from "./PopupModal"; 
 import { toast } from "react-toastify";
+import { useDispatch } from 'react-redux';
+import { setLocation } from '../redux/location/locationSlice';
+import { useNavigate, useNavigation } from "react-router-dom";
 
 const MapComponent = ({ allowLocation, enableSearch }) => {
   const [map, setMap] = useState(null);
   const [markerPosition, setMarkerPosition] = useState(null);
   const [autocomplete, setAutocomplete] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [locationString, setLocationString] = useState("Loading...");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const libraries = ["places"]; 
   const mapContainerStyle = { width: "100%", height: "400px" };
@@ -23,13 +29,31 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
     libraries,
   });
 
+  const fetchLocationString = async (lat, lng) => {
+    const geocodingUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
+    try {
+      const response = await fetch(geocodingUrl);
+      const data = await response.json();
+      if (data.status === "OK" && data.results.length > 0) {
+        setLocationString(data.results[0].formatted_address);
+      } else {
+        setLocationString("Address not found");
+      }
+    } catch (error) {
+      console.error("Error fetching location string:", error);
+      setLocationString("Error fetching address");
+    }
+  };
+
   const onLoad = useCallback((mapInstance) => {
     setMap(mapInstance);
   }, []);
 
   const onDragEnd = (event) => {
-    const position = event.latLng;
-    setMarkerPosition({ lat: position.lat(), lng: position.lng() });
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    setMarkerPosition({ lat, lng });
+    fetchLocationString(lat, lng);
   };
 
   const handleLocateMe = () => {
@@ -42,10 +66,11 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
           };
           setMarkerPosition(userLocation);
           map.panTo(userLocation);
+          fetchLocationString(userLocation.lat, userLocation.lng);
         },
         (error) => {
-            toast.error("location permission blocked")
-            console.error("Geolocation error:", error.message)
+            toast.error("Location permission blocked");
+            console.error("Geolocation error:", error.message);
         }
       );
     } else {
@@ -63,6 +88,7 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
         };
         setMarkerPosition(location);
         map.panTo(location);
+        fetchLocationString(location.lat, location.lng);
       }
     }
   };
@@ -79,6 +105,15 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
   const handleManualSearch = () => {
     setIsModalOpen(false); 
     enableSearch(); 
+  };
+
+  const handleProceed = () => {
+    toast.success(`Proceeding with location: ${locationString}`);
+
+    console.log("Proceeding with location:", locationString);
+    
+    dispatch(setLocation(locationString.toString()));
+    navigate('/save-address')
   };
 
   if (loadError) return <p>Error loading maps</p>;
@@ -101,7 +136,12 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
         )}
       </GoogleMap>
 
-      {enableSearch && (
+      <div className="mt-4 text-center">
+        <span className="text-lg font-semibold">Pinned Location:</span>
+        <p className="text-gray-600">{locationString}</p>
+      </div>
+
+      
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white shadow-md p-2 rounded-lg">
           <Autocomplete
             onLoad={(autoCompInstance) => setAutocomplete(autoCompInstance)}
@@ -114,14 +154,22 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
             />
           </Autocomplete>
         </div>
-      )}
 
       <button
         onClick={allowLocation ? handleLocateMe : handleEnableLocateMe}
-        className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-md"
+        className="absolute bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-md"
       >
         {allowLocation ? "Locate Me" : "Enable & Locate Me"}
       </button>
+
+      {markerPosition && (
+        <button
+          onClick={handleProceed}
+          className="absolute bottom-4 right-2 transform -translate-x-1/2 px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-md"
+        >
+          Proceed
+        </button>
+      )}
 
       <PopupModal
         isVisible={isModalOpen}
