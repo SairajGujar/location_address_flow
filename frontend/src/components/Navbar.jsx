@@ -1,12 +1,21 @@
-import React from "react";
-import { Link } from "react-router-dom"; 
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Navbar = ({ token }) => {
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    toast.success("logged out");
+    window.location.replace('/');
+  };
+
   return (
     <nav className="bg-gray-800 text-white">
       <div className="container mx-auto flex justify-between items-center p-4">
         <div className="text-2xl font-bold">
-          <Link to="/">OptaCloud</Link>
+          <Link to="/">Locate</Link>
         </div>
 
         <div className="hidden md:flex space-x-4">
@@ -17,19 +26,26 @@ const Navbar = ({ token }) => {
           )}
         </div>
 
-        <div>
+        <div className="relative">
           {token ? (
-            <button
-              className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full"
-              onClick={() => alert("Profile Clicked")}
-            >
-              <img
-                src="https://via.placeholder.com/32"
-                alt="Profile"
-                className="w-8 h-8 rounded-full"
-              />
-              <span>Profile</span>
-            </button>
+            <div>
+              <button
+                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-full"
+                onClick={() => setShowDropdown(!showDropdown)}
+              >
+                Profile
+              </button>
+              {showDropdown && (
+                <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded-lg shadow-md z-10">
+                  <button
+                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <Link
               to="/login"

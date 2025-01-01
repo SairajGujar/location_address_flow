@@ -2,32 +2,39 @@ import React, { useState } from "react";
 import { FaHome, FaBuilding, FaUserFriends, FaMapPin } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import { useSelector } from "react-redux";
-import { createAddress } from "../apis/location";
+import { saveAddress } from "../apis/location";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const SaveAddress = () => {
-  const location = useSelector((state) => state.location.location);
+  const location = useSelector((state) => state.location.locationString);
+  const lat = useSelector((state) => state.location.lat);
+  const lng = useSelector((state) => state.location.lng);
 
   const [houseNumber, setHouseNumber] = useState("");
-  const [apartment, setApartment] = useState("");
+  const [landMark, setLandMark] = useState("");
   const [selectedType, setSelectedType] = useState(null);
-
+  const navigate = useNavigate()
   const handleSubmit = (e) => {
+    
     e.preventDefault();
-    if (!houseNumber || !apartment || !selectedType) {
-      alert("Please fill out all fields and select an address type!");
+    if (!houseNumber || !landMark || !selectedType) {
+      toast.error("Please fill out all fields and select an address type!");
       return;
     }
     const address = {
       houseNumber,
-      apartment,
-      type: selectedType,
+      landMark,
+      addressType: selectedType,
       location,
+      latitude:lat,
+      longitude:lng
     }
-    createAddress(address)
+    saveAddress(address)
       .then((response) => {
-        if (response.status === 201) {
+        if (response.success === true) {
           toast.success("Address saved successfully!");
+          navigate('/manage-address')
         } else {
           toast.error("Failed to save address!");
         }
@@ -44,12 +51,12 @@ const SaveAddress = () => {
 
   return (
     <div>
-      <Navbar token="example_token" />
+      <Navbar token={localStorage.getItem('token')} />
       <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
         <div className="w-full max-w-2xl bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center space-x-2 text-blue-500">
             <FaMapPin size={20} />
-            <span className="text-lg font-semibold">{location}</span>
+            <span className="text-lg font-semibold">{location || "Please select location from map"}</span>
           </div>
         </div>
 
@@ -77,8 +84,8 @@ const SaveAddress = () => {
               </label>
               <input
                 type="text"
-                value={apartment}
-                onChange={(e) => setApartment(e.target.value)}
+                value={landMark}
+                onChange={(e) => setLandMark(e.target.value)}
                 placeholder="Enter apartment, road, or area"
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
               />

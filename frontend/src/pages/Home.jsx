@@ -50,10 +50,10 @@ const HomePage = () => {
     setManualSearch(true);
     setIsModalOpen(false);
   };
-
+  
   return (
     <div>
-      <Navbar token="example_token" />
+      <Navbar token={localStorage.getItem('token')} />
       <main className="container mx-auto p-4">
         <h1 className="text-4xl font-bold text-center mt-8">
           Welcome to the Home Page!

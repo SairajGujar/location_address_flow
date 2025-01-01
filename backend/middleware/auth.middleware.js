@@ -8,7 +8,6 @@ export async function authMiddleware(req, res, next) {
         const token = authHeader.split(' ')[1];
         if(!token) return res.sendStatus(401);
         if(!jwt.verify(token, process.env.JWT_SECRET)) return res.sendStatus(401);
-        console.log(jwt.decode(token).user)
         req.user = jwt.decode(token).user;
         next();
 

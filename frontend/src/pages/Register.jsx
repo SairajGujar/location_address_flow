@@ -1,8 +1,11 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { signup } from '../apis/auth/auth'; 
+import { toast } from 'react-toastify';
 
 const RegisterForm = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -10,8 +13,22 @@ const RegisterForm = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log('Registration Data:', data);
+  const onSubmit = async (data) => {
+    try {
+      const result = await signup(data); 
+
+      if (result.success) {
+        toast.success('Registered successfully. Please login to continue.');
+        navigate('/login');
+      } else {
+        const errorMessage = result.message || 'Registration failed. Please try again.';
+        toast.error(errorMessage);
+        console.error(`Error (Status: ${result.status}): ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error.message);
+      toast.error('Something went wrong. Please try again later.');
+    }
   };
 
   const password = watch('password');
@@ -22,18 +39,18 @@ const RegisterForm = () => {
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Register</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label htmlFor="username" className="block text-md font-medium text-gray-700">
-              Username
+            <label htmlFor="name" className="block text-md font-medium text-gray-700">
+              Name
             </label>
             <input
-              id="username"
+              id="name"
               type="text"
-              {...register('username', { required: 'Username is required' })}
+              {...register('name', { required: 'Name is required' })}
               className="w-full mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your username"
+              placeholder="Enter your name"
             />
-            {errors.username && (
-              <p className="mt-1 text-sm text-red-500">{errors.username.message}</p>
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
             )}
           </div>
 
@@ -54,7 +71,9 @@ const RegisterForm = () => {
               className="w-full mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter your email"
             />
-            {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>}
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
+            )}
           </div>
 
           <div>
@@ -102,7 +121,9 @@ const RegisterForm = () => {
           >
             Register
           </button>
-          <Link to='/login' className='hover:cursor-pointer'>Already registered?</Link>
+          <Link to="/login" className="hover:cursor-pointer">
+            Already registered?
+          </Link>
         </form>
       </div>
     </div>

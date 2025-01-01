@@ -7,9 +7,9 @@ import {
 } from "@react-google-maps/api";
 import PopupModal from "./PopupModal"; 
 import { toast } from "react-toastify";
-import { useDispatch } from 'react-redux';
-import { setLocation } from '../redux/location/locationSlice';
-import { useNavigate, useNavigation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setLocation } from "../redux/location/locationSlice";
+import { useNavigate } from "react-router-dom";
 
 const MapComponent = ({ allowLocation, enableSearch }) => {
   const [map, setMap] = useState(null);
@@ -69,8 +69,8 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
           fetchLocationString(userLocation.lat, userLocation.lng);
         },
         (error) => {
-            toast.error("Location permission blocked");
-            console.error("Geolocation error:", error.message);
+          toast.error("Location permission blocked");
+          console.error("Geolocation error:", error.message);
         }
       );
     } else {
@@ -108,12 +108,23 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
   };
 
   const handleProceed = () => {
-    toast.success(`Proceeding with location: ${locationString}`);
+    if (!markerPosition) {
+      toast.error("No location selected");
+      return;
+    }
 
-    console.log("Proceeding with location:", locationString);
-    
-    dispatch(setLocation(locationString.toString()));
-    navigate('/save-address')
+    const { lat, lng } = markerPosition;
+
+    dispatch(
+      setLocation({
+        locationString,
+        lat,
+        lng,
+      })
+    );
+
+    toast.success(`Proceeding with location: ${locationString}`);
+    navigate("/save-address");
   };
 
   if (loadError) return <p>Error loading maps</p>;
@@ -141,19 +152,18 @@ const MapComponent = ({ allowLocation, enableSearch }) => {
         <p className="text-gray-600">{locationString}</p>
       </div>
 
-      
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white shadow-md p-2 rounded-lg">
-          <Autocomplete
-            onLoad={(autoCompInstance) => setAutocomplete(autoCompInstance)}
-            onPlaceChanged={handleAutocomplete}
-          >
-            <input
-              type="text"
-              placeholder="Search a location..."
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none"
-            />
-          </Autocomplete>
-        </div>
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white shadow-md p-2 rounded-lg">
+        <Autocomplete
+          onLoad={(autoCompInstance) => setAutocomplete(autoCompInstance)}
+          onPlaceChanged={handleAutocomplete}
+        >
+          <input
+            type="text"
+            placeholder="Search a location..."
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none"
+          />
+        </Autocomplete>
+      </div>
 
       <button
         onClick={allowLocation ? handleLocateMe : handleEnableLocateMe}

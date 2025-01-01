@@ -21,6 +21,14 @@ const Address = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
+  },
+  houseNumber: {
+    type:Number,
+    required: true,
+  },
+  landMark:{
+    type: String,
+    required: true,
   }
 });
 

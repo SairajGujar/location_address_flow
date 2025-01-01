@@ -16,7 +16,7 @@ export async function login(req, res){
 
     } catch (error) {
         console.log(error.message)
-        return res.sendStatus(500);
+        return res.sendStatus(500).json(error.message);
     }
 }
 
